@@ -21,6 +21,7 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const MyHold = (props) => {
      const hold = props.data;
+     const holdSource = props.holdSource
      //console.log("Hold raw data");
      //console.log(hold);
      const resetGroup = props.resetGroup;
@@ -301,6 +302,11 @@ export const MyHold = (props) => {
                return null;
           }
      };
+
+     if (holdSource != 'all' && holdSource != hold.source) {
+          console.log("Hiding hold that is the wrong source " + holdSource);
+          return null;
+     }
 
      //console.log("Out of hold group message for " + hold.title + " is " + hold.outOfHoldGroupMessage);
      return (

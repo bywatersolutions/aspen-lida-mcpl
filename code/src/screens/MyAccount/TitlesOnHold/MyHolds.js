@@ -52,7 +52,7 @@ export const MyHolds = () => {
           });
      }, [navigation]);
 
-     useQuery(['holds', user.id, library.baseUrl, language, readySortMethod, pendingSortMethod, holdSource], () => getPatronHolds(readySortMethod, pendingSortMethod, holdSource, library.baseUrl, true, language), {
+     useQuery(['holds', user.id, library.baseUrl, language, readySortMethod, pendingSortMethod, 'all'], () => getPatronHolds(readySortMethod, pendingSortMethod, 'all', library.baseUrl, true, language), {
           onSuccess: (data) => {
                updateHolds(data);
           },
@@ -63,7 +63,7 @@ export const MyHolds = () => {
           updateReadySortMethod(value);
           const sortedHolds = sortHolds(holds, pendingSortMethod, value);
           setLoading(true);
-          queryClient.setQueryData(['holds', library.baseUrl, language, readySortMethod, pendingSortMethod, holdSource], sortedHolds);
+          queryClient.setQueryData(['holds', library.baseUrl, language, readySortMethod, pendingSortMethod, 'all'], sortedHolds);
           setLoading(false);
           updateHolds(sortedHolds);
      };
@@ -73,14 +73,14 @@ export const MyHolds = () => {
           const sortedHolds = sortHolds(holds, value, readySortMethod);
           //console.log(sortedHolds[1]);
           setLoading(true);
-          queryClient.setQueryData(['holds', library.baseUrl, language, readySortMethod, pendingSortMethod, holdSource], sortedHolds);
+          queryClient.setQueryData(['holds', library.baseUrl, language, readySortMethod, pendingSortMethod, 'all'], sortedHolds);
           setLoading(false);
           updateHolds(sortedHolds);
      };
 
      const toggleHoldSource = async (value) => {
           setHoldSource(value);
-          setLoading(true);
+          //setLoading(true);
           if (!_.isNull(value)) {
                if (value === 'ils') {
                     navigation.setOptions({ title: getTermFromDictionary(language, 'titles_on_hold_for_ils') });
@@ -95,10 +95,10 @@ export const MyHolds = () => {
                } else {
                     navigation.setOptions({ title: getTermFromDictionary(language, 'titles_on_hold_for_all') });
                }
-               await queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, readySortMethod, pendingSortMethod, value] });
-               await queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, readySortMethod, pendingSortMethod, holdSource] });
+               //await queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, readySortMethod, pendingSortMethod, value] });
+               //await queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, readySortMethod, pendingSortMethod, holdSource] });
           }
-          setLoading(false);
+         // setLoading(false);
      };
 
      useFocusEffect(
@@ -208,7 +208,7 @@ export const MyHolds = () => {
      const resetGroup = async () => {
           setLoading(true);
           clearGroupValue();
-          queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, readySortMethod, pendingSortMethod, holdSource] });
+          queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, readySortMethod, pendingSortMethod, 'all'] });
           queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
           setLoading(false);
      };
@@ -239,7 +239,7 @@ export const MyHolds = () => {
 
      const refreshHolds = async () => {
           setLoading(true);
-          queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, readySortMethod, pendingSortMethod, holdSource] });
+          queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, readySortMethod, pendingSortMethod, 'all'] });
           queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
           setLoading(false);
      };
@@ -531,7 +531,7 @@ export const MyHolds = () => {
                          {_.isObject(holds) ? (
                               <SectionList
                                    sections={holds}
-                                   renderItem={({ item, section: { title } }) => <MyHold data={item} resetGroup={resetGroup} language={language} pickupLocations={pickupLocations} section={title} key="ready" />}
+                                   renderItem={({ item, section: { title }}) => <MyHold data={item} resetGroup={resetGroup} language={language} pickupLocations={pickupLocations} section={title} key="ready" holdSource={holdSource} />}
                                    stickySectionHeadersEnabled={true}
                                    renderSectionHeader={({ section: { title } }) => displaySectionHeader(title)}
                                    renderSectionFooter={({ section: { title } }) => displaySectionFooter(title)}
