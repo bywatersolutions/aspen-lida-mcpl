@@ -385,6 +385,9 @@ export const UserProvider = ({ children }) => {
      const [inbox, setInbox] = useState([]);
      const [sublocations, setSublocations] = useState([]);
 
+     const { updatePendingSortMethod, updateReadySortMethod } = React.useContext(HoldsContext);
+     const { updateSortMethod } = React.useContext(CheckoutsContext);
+
      const updateUser = (data) => {
           if (user !== data) {
                if (_.isObject(data) && !_.isUndefined(data.lastListUsed)) {
@@ -396,6 +399,11 @@ export const UserProvider = ({ children }) => {
                }
 
                setUser(data);
+
+               updatePendingSortMethod(user?.holdSortUnavailable ?? 'title');
+               updateReadySortMethod(user?.holdSortAvailable ?? 'expire');
+               updateSortMethod(user?.checkoutSort ?? 'dueDate');
+
                console.log('updated UserContext');
           } else {
                console.log("User data hasn't changed");

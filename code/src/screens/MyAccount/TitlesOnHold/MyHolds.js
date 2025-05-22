@@ -11,7 +11,7 @@ import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplayMessage, DisplaySystemMessage } from '../../../components/Notifications';
 import { HoldsContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
-import { getPatronCheckedOutItems, getPatronHolds } from '../../../util/api/user';
+import {getPatronCheckedOutItems, getPatronHolds, setSortPreferences} from '../../../util/api/user';
 import { getPickupLocations } from '../../../util/loadLibrary';
 import { ManageAllHolds, ManageSelectedHolds, MyHold } from './MyHold';
 
@@ -65,6 +65,7 @@ export const MyHolds = () => {
           setLoading(true);
           queryClient.setQueryData(['holds', library.baseUrl, language, readySortMethod, pendingSortMethod, 'all'], sortedHolds);
           setLoading(false);
+          await setSortPreferences('availableHoldSort', value, language, library.baseUrl)
           updateHolds(sortedHolds);
      };
 
@@ -75,6 +76,7 @@ export const MyHolds = () => {
           setLoading(true);
           queryClient.setQueryData(['holds', library.baseUrl, language, readySortMethod, pendingSortMethod, 'all'], sortedHolds);
           setLoading(false);
+          await setSortPreferences('unavailableHoldSort', value, language, library.baseUrl);
           updateHolds(sortedHolds);
      };
 
