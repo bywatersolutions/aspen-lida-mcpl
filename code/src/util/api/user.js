@@ -189,6 +189,30 @@ export async function logoutUser(url) {
 }
 
 /**
+ * Updates a given sort type for the user
+ * @param {string} sortType
+ * @param {string} sortValue
+ * @param {string} language
+ * @param {string} url
+ **/
+export async function setSortPreferences(sortType, sortValue, language = 'en', url) {
+     const postBody = await postData();
+     const discovery = create({
+          baseURL: url + '/API',
+          timeout: GLOBALS.timeoutAverage,
+          headers: getHeaders(true),
+          auth: createAuthTokens(),
+          params: {
+               [sortType]: sortValue,
+               language: language,
+          },
+     });
+     const response = await discovery.post('/UserAPI?method=updateSortPreferences', postBody);
+     console.log(response);
+     return response;
+}
+
+/**
  * Updates the users alternate library card
  * @param {string} cardNumber
  * @param {string} cardPassword

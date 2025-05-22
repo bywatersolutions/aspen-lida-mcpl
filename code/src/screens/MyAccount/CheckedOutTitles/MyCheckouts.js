@@ -12,7 +12,7 @@ import { DisplaySystemMessage } from '../../../components/Notifications';
 import { CheckoutsContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
 import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts } from '../../../util/accountActions';
-import { getPatronCheckedOutItems } from '../../../util/api/user';
+import {getPatronCheckedOutItems, setSortPreferences} from '../../../util/api/user';
 import { stripHTML } from '../../../util/apiAuth';
 import { MyCheckout } from './MyCheckout';
 
@@ -74,6 +74,7 @@ export const MyCheckouts = () => {
      const toggleSort = async (value) => {
           updateSortMethod(value);
           const sortedCheckouts = sortCheckouts(checkouts, value);
+          await setSortPreferences('sort', value, language, library.baseUrl);
           updateCheckouts(sortedCheckouts);
      };
 
