@@ -461,7 +461,7 @@ const NotificationToggle = (data) => {
                     setNotifyAccount(value);
                }
                await getAppPreferencesForUser(library.baseUrl, language).then((result) => {
-                    updateAppPreferences(data);
+                    updateAppPreferences(result);
                });
 
                queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
@@ -510,7 +510,7 @@ const NotificationToggleAll = (data) => {
                setNotifyCustom(allowAllNotifications);
                setNotifyAccount(allowAllNotifications);
                await getAppPreferencesForUser(library.baseUrl, language).then((result) => {
-                    updateAppPreferences(data);
+                    updateAppPreferences(result);
                });
 
                queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
