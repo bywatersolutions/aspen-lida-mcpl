@@ -68,7 +68,8 @@ const app_config = {
      privacy: 'public',
      platforms: ['ios', 'android'],
      version: version['version'],
-     sdkVersion: '51.0.0',
+     sdkVersion: '52.0.0',
+     newArchEnabled: false,
      orientation: 'default',
      icon: app['discoveryUrl'] + 'API/SystemAPI?method=getLogoFile&themeId=' + app['themeId'] + '&type=appIcon&slug=' + app['slug'],
      updates: {
@@ -167,12 +168,6 @@ const app_config = {
      plugins: [
           'expo-secure-store',
           'expo-localization',
-          [
-               'expo-barcode-scanner',
-               {
-                    cameraPermission: 'This app uses your camera to scan barcodes when searching for items in the library catalog or when scanning your library card.',
-               },
-          ],
           [
                'expo-location',
                {
