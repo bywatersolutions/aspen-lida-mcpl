@@ -140,6 +140,7 @@ const Account = (data) => {
      const { user, accounts, cards, viewers, updateUser, updateLinkedAccounts, updateLibraryCards, updateLinkedViewerAccounts } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
 
      const refreshLinkedAccounts = async () => {
           queryClient.invalidateQueries({ queryKey: ['linked_accounts', user.id, accounts, library.baseUrl, language] });
@@ -170,8 +171,8 @@ const Account = (data) => {
                          {account.displayName ? account.displayName : account.ils_barcode} - {account.homeLocation}
                     </Text>
                     {type === 'viewer' && user.removeLinkedAccountRule === 0 ? null : (
-                         <Button bgColor={theme['colors']['primary']['500']} isLoading={isRemoving} isLoadingText={getTermFromDictionary(language, 'removing', true)} colorScheme="warning" size="sm" onPress={() => removeAccount()}>
-                              <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'remove')}</ButtonText>
+                         <Button bgColor={theme['colors']['warning']['500']} isLoading={isRemoving} isLoadingText={getTermFromDictionary(language, 'removing', true)} size="sm" onPress={() => removeAccount()}>
+                              <ButtonText color={theme['colors']['white']}>{getTermFromDictionary(language, 'remove')}</ButtonText>
                          </Button>
                     )}
                </HStack>
