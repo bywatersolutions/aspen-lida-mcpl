@@ -5,7 +5,7 @@ import * as Brightness from 'expo-brightness';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import _ from 'lodash';
 import moment from 'moment';
-import { Box, Button, Center, Flex, Icon, Image, Modal, Text, useColorModeValue, useContrastText } from 'native-base';
+import { Box, Button, ButtonText, Center, Flex, Icon, Image, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Text, Heading, ModalBackdrop, CloseIcon, ModalCloseButton } from '@gluestack-ui/themed';
 import React from 'react';
 import { Dimensions } from 'react-native';
 import Barcode from 'react-native-barcode-expo';
@@ -14,7 +14,7 @@ import Carousel from 'react-native-reanimated-carousel';
 
 // custom components and helper files
 import { PermissionsPrompt } from '../../../components/PermissionsPrompt';
-import { LanguageContext, LibrarySystemContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
 import { getLinkedAccounts, updateScreenBrightnessStatus } from '../../../util/api/user';
@@ -223,6 +223,7 @@ const CreateLibraryCard = (data) => {
      const { numCards } = data;
 
      const [expirationText, setExpirationText] = React.useState('');
+     const { theme, textColor } = React.useContext(ThemeContext);
 
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
@@ -288,28 +289,26 @@ const CreateLibraryCard = (data) => {
           barcodeStyle = 'INVALID';
      };
 
-     //console.log('barcodeValue > ' + barcodeValue);
-     //console.log('barcodeStyle > ' + barcodeStyle);
      if (barcodeValue === 'UNKNOWN' || _.isNull(barcodeValue) || _.isNull(barcodeStyle) || _.isEmpty(barcodeValue) || _.isEmpty(barcodeStyle) || barcodeStyle === 'INVALID' || barcodeStyle === 'none') {
           return (
-               <Flex direction="column" bg="white" maxW="90%" px={8} py={5} borderRadius={20}>
+               <Flex direction="column" bg="white" maxW="90%" px="$8" py="$5" borderRadius="lg">
                     <Center>
                          <Flex direction="row">
-                              {icon ? <Image source={{ uri: icon }} fallbackSource={require('../../../themes/default/aspenLogo.png')} w={42} h={42} alt={getTermFromDictionary(language, 'library_card')} /> : null}
-                              <Text bold ml={3} mt={2} fontSize="lg" color="darkText">
+                              {icon ? <Image source={{ uri: icon }} fallbackSource={require('../../../themes/default/aspenLogo.png')} alt={getTermFromDictionary(language, 'library_card')} /> : null}
+                              <Text bold ml="$3" mt="$2" fontSize="lg" >
                                    {card.homeLocation}
                               </Text>
                          </Flex>
                     </Center>
-                    <Center pt={8}>
-                         <Text pb={2} color="darkText">
+                    <Center pt="$8">
+                         <Text pb="$2" >
                               {card.displayName}
                          </Text>
-                         <Text color="darkText" bold fontSize="xl">
+                         <Text bold fontSize="xl">
                               {barcodeValue}
                          </Text>
                          {showExpirationDate && expirationDate && !neverExpires ? (
-                              <Text color="darkText" fontSize={10}>
+                              <Text fontSize={10}>
                                    {expirationText}
                               </Text>
                          ) : null}
@@ -318,27 +317,27 @@ const CreateLibraryCard = (data) => {
           );
      }
 
-     let cardBg = 'white';
-     let cardText = useContrastText(cardBg);
+     let cardBg = theme['colors']['white'];
+     let cardText = theme['colors']['black'];
 
      if (numCards > 1) {
-          cardBg = useColorModeValue('white', 'coolGray.700');
-          cardText = useContrastText(cardBg);
+          cardBg = theme['colors']['coolGray']['700'];
+          cardText = theme['colors']['white'];
      }
 
      return (
-          <Flex direction="column" bg={cardBg} px={8} py={5} borderRadius={20} shadow={1}>
+          <Flex direction="column" bg={cardBg} px="$8" py="$5" borderRadius="lg" shadow="$1">
                {numCards > 1 ? (
                     <>
                          <Center>
                               <Flex direction="row">
                                    {icon ? <Image source={{ uri: icon }} fallbackSource={require('../../../themes/default/aspenLogo.png')} w={42} h={42} alt={getTermFromDictionary(language, 'library_card')} /> : null}
-                                   <Text bold ml={3} mt={2} fontSize="lg" color={cardText}>
+                                   <Text bold ml="$3" mt="$2" fontSize="lg" color={cardText}>
                                         {card.homeLocation}
                                    </Text>
                               </Flex>
                          </Center>
-                         <Center pt={2}>
+                         <Center pt="$2">
                               <Text fontSize="md" color={cardText}>
                                    {card.displayName}
                               </Text>
@@ -349,7 +348,7 @@ const CreateLibraryCard = (data) => {
                     {showExpirationDate && expirationDate && !neverExpires && numCards > 1 ? <Text color={cardText}>{expirationText}</Text> : null}
                     {numCards > 1 ? <OpenBarcode barcodeValue={barcodeValue} barcodeFormat={barcodeStyle} handleBarcodeError={handleBarcodeError} language={language} /> : <><Barcode value={barcodeValue} format={barcodeStyle} background="warmGray.100" onError={handleBarcodeError} /><Text style={{fontSize: 20, textAlign: 'center'}}>{barcodeValue}</Text></>}
                     {showExpirationDate && expirationDate && !neverExpires && numCards === 1 ? (
-                         <Text color={cardText} fontSize={10} pt={2}>
+                         <Text color={cardText} fontSize={10} pt="$2">
                               {expirationText}
                          </Text>
                     ) : null}
@@ -361,6 +360,7 @@ const CreateLibraryCard = (data) => {
 const CardCarousel = (data) => {
      const [currentIndex, setCurrentIndex] = React.useState(0);
      const cards = _.sortBy(data.cards, ['key']);
+     console.log(cards);
      const isVertical = data.orientation;
      const toggleOrientation = data.toggleOrientation;
      const screenWidth = Dimensions.get('window').width;
@@ -406,8 +406,8 @@ const CardCarousel = (data) => {
           return (
                <Button
                     size="sm"
-                    mr={1}
-                    mb={1}
+                    mr="$1"
+                    mb="$1"
                     colorScheme="tertiary"
                     variant={index === currentIndex ? 'solid' : 'outline'}
                     onPress={() => {
@@ -416,7 +416,7 @@ const CardCarousel = (data) => {
                               animated: true,
                          });
                     }}>
-                    {card.displayName}
+                    <ButtonText>{card.displayName}</ButtonText>
                </Button>
           );
      };
@@ -425,7 +425,7 @@ const CardCarousel = (data) => {
           const card = cards[0];
           return (
                <Box
-                    p={5}
+                    p="$5"
                     flex={1}
                     alignItems="center"
                     style={{
@@ -437,7 +437,7 @@ const CardCarousel = (data) => {
      }
 
      return (
-          <Box alignItems="center" px={3}>
+          <Box alignItems="center" px="$3">
                <Carousel
                     {...baseOptions}
                     ref={ref}
@@ -476,15 +476,16 @@ const OpenBarcode = (data) => {
      return (
           <Center>
                <Button variant="ghost" onPress={() => toggleModal()} startIcon={<Icon as={MaterialCommunityIcons} name="barcode-scan" size={10} />}>
-                    {getTermFromDictionary(language, 'open_barcode')}
+                    <ButtonText>{getTermFromDictionary(language, 'open_barcode')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={() => toggleModal()} size="xl" _backdrop={{ opacity: 75 }}>
-                    <Modal.Content bgColor="white">
-                         <Modal.Body bgColor="white">
+                    <ModalBackdrop />
+                    <ModalContent bgColor="white">
+                         <ModalBody bgColor="white">
 							  <Barcode value={barcodeValue} format={barcodeFormat} onError={handleBarcodeError} />
 							  <Text style={{fontSize: 20, textAlign: 'center'}}>{barcodeValue}</Text>
-                         </Modal.Body>
-                    </Modal.Content>
+                         </ModalBody>
+                    </ModalContent>
                </Modal>
           </Center>
      );
