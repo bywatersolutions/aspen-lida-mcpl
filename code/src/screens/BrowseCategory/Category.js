@@ -3,22 +3,37 @@ import { ScrollView } from 'react-native';
 import _ from 'lodash';
 import React from 'react';
 
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { BrowseCategoryContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
+import { navigateStack } from '../../helpers/RootNavigator';
+import { updateBrowseCategoryStatus } from '../../util/loadPatron';
+import { getErrorMessage } from '../../util/apiAuth';
+import { logErrorMessage } from '../../util/logging';
+import { useQueryClient } from '@tanstack/react-query';
 
-const DisplayBrowseCategory = (props) => {
+const DisplayBrowseCategory = ({category}) => {
+     const queryClient = useQueryClient();
      const { theme } = React.useContext(ThemeContext);
      const { language } = React.useContext(LanguageContext);
+     const { library } = React.useContext(LibrarySystemContext);
+     const { maxNum } = React.useContext(BrowseCategoryContext);
 
-     const category = props.category;
+     const [showErrorDialog, setShowErrorDialog] = React.useState(false);
+     const [errorTitle, setErrorTitle] = React.useState('');
+     const [errorMessage, setErrorMessage] = React.useState('');
+
+     const [selectedSubCategoryIndex, setSelectedSubCategoryIndex] = React.useState(0);
+     const handleSelectSubCategory = (index) => setSelectedSubCategoryIndex(index);
+
      const subCategories = category.subCategories ?? [];
      const records = category.records ?? [];
 
-     const [selectedSubCategoryIndex, setSelectedSubCategoryIndex] = React.useState(0);
-
-     const handleSelectSubCategory = (index) => setSelectedSubCategoryIndex(index);
+     if(records.length === 0 && subCategories.length === 0) {
+          // Nothing to show, probably shouldn't happen in production but just in case
+          return null;
+     }
 
      const showSubCategoryRecords =
           subCategories.length > 0 && subCategories[selectedSubCategoryIndex]?.records?.length > 0;
@@ -36,18 +51,48 @@ const DisplayBrowseCategory = (props) => {
           subCategoryRecords = subCategoryHasMore ? allRecords.slice(0, maxItems) : allRecords;
      }
 
+     const onPressHide = async (textId) => {
+          await updateBrowseCategoryStatus(textId, library.baseUrl).then(async (response) => {
+               if (!response.ok) {
+                    const error = getErrorMessage({ statusCode: response.status, problem: response.problem});
+                    setErrorTitle(error.title);
+                    setErrorMessage(error.message);
+                    logErrorMessage(response);
+                    setShowErrorDialog(true);
+               } else {
+                    await queryClient.invalidateQueries({ queryKey: ['browse_categories', library.baseUrl, language, maxNum] });
+                    await queryClient.invalidateQueries({ queryKey: ['browse_categories_list', library.baseUrl, language] });
+               }
+          });
+     }
+
+     const onPressHideAll = async (textId) => {
+          await updateBrowseCategoryStatus(textId, library.baseUrl, true).then(async (response) => {
+               if (!response.ok) {
+                    const error = getErrorMessage({ statusCode: response.status, problem: response.problem});
+                    setErrorTitle(error.title);
+                    setErrorMessage(error.message);
+                    logErrorMessage(response);
+                    setShowErrorDialog(true);
+               } else {
+                    await queryClient.invalidateQueries({ queryKey: ['browse_categories', library.baseUrl, language, maxNum] });
+                    await queryClient.invalidateQueries({ queryKey: ['browse_categories_list', library.baseUrl, language] });
+               }
+          });
+     }
+
      return (
           <SafeAreaView>
                <View pb="$3">
                     <HStack space="$3" alignItems="center" justifyContent="space-between" pb="$2">
-                         <DisplayBrowseCategoryTitle category={category.label} id={category.textId} />
+                         <DisplayBrowseCategoryTitle category={category.label} key={category.id} textId={category.textId} source={category.source ?? 'GroupedWork'} />
                          {subCategories.length > 0 ? (
-                              <Button variant="outline" size="xs" borderColor={theme['colors']['primary']['500']} sx={{ paddingHorizontal: 6, paddingVertical: 0, height: 24 }}>
+                              <Button variant="outline" size="xs" borderColor={theme['colors']['primary']['500']} sx={{ paddingHorizontal: 6, paddingVertical: 0, height: 24 }} onPress={() => onPressHideAll(category.textId)}>
                                    <ButtonIcon as={MaterialIcons} name="close" color={theme['colors']['primary']['500']} mr="$1" />
                                    <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary(language, 'hide_all')}</ButtonText>
                               </Button>
                          ) : (
-                              <Button variant="outline" size="xs" borderColor={theme['colors']['primary']['500']} sx={{ paddingHorizontal: 6, paddingVertical: 0, height: 24 }}>
+                              <Button variant="outline" size="xs" borderColor={theme['colors']['primary']['500']} sx={{ paddingHorizontal: 6, paddingVertical: 0, height: 24 }} onPress={() => onPressHide(category.textId)}>
                                    <ButtonIcon as={MaterialIcons} name="close" color={theme['colors']['primary']['500']} mr="$1" />
                                    <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary(language, 'hide')}</ButtonText>
                               </Button>
@@ -56,36 +101,52 @@ const DisplayBrowseCategory = (props) => {
                     {subCategories.length > 0 ? (
                          <>
                               <ScrollView horizontal>
-                                   <DisplaySubCategoryBar subCategories={subCategories} selectedIndex={selectedSubCategoryIndex} onSelect={handleSelectSubCategory} />
+                                   <DisplaySubCategoryBar data={subCategoryRecords} subCategories={subCategories} selectedIndex={selectedSubCategoryIndex} onSelect={handleSelectSubCategory} />
                               </ScrollView>
-                              {showSubCategoryRecords && <FlatList pb="$8" data={subCategoryRecords} keyExtractor={(item, index) => item.key?.toString() ?? index.toString()} horizontal renderItem={({ item }) => <DisplayBrowseCategoryRecord record={item} />} ListFooterComponent={subCategoryHasMore ? <DisplayMoreResultsButton /> : null} />}
+                              {showSubCategoryRecords && <FlatList pb="$8" data={subCategoryRecords} keyExtractor={(item, index) => item.key?.toString() ?? index.toString()} horizontal renderItem={({ item }) => <DisplayBrowseCategoryRecord record={item} />} ListFooterComponent={subCategoryHasMore ? <DisplayMoreResultsButton category={subCategories[selectedSubCategoryIndex]} /> : null} />}
                          </>
                     ) : records.length > 0 ? (
-                         <FlatList pb="$8" data={displayedData} keyExtractor={(item, index) => item.id?.toString() ?? index.toString()} horizontal renderItem={({ item }) => <DisplayBrowseCategoryRecord record={item} />} ListFooterComponent={hasMore ? <DisplayMoreResultsButton /> : null} />
+                         <FlatList pb="$8" data={displayedData} keyExtractor={(item, index) => item.id?.toString() ?? index.toString()} horizontal renderItem={({ item }) => <DisplayBrowseCategoryRecord record={item} />} ListFooterComponent={hasMore ? <DisplayMoreResultsButton category={category} /> : null} />
                     ) : null}
                </View>
           </SafeAreaView>
      );
 };
 
-const DisplayBrowseCategoryTitle = ({category, id}) => {
+const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
      const { colorMode, theme } = React.useContext(ThemeContext);
+
+     const onPressCategory = (label, key, source) => {
+          let screen = 'SearchByCategory';
+          if (source === 'List') {
+               screen = 'SearchByList';
+          } else if (source === 'SavedSearch') {
+               screen = 'SearchBySavedSearch';
+          }
+
+          navigateStack('BrowseTab', screen, {
+               title: label,
+               id: key,
+          });
+     };
+
      return (
-          <Text
-               color={colorMode === 'light' ? theme['colors']['gray']['800'] : theme['colors']['coolGray']['200']}
-               bold
-               maxWidth="80%"
-               mb="$1"
-               sx={{
-               '@base': {
-                    fontSize: 20,
-               },
-               '@lg': {
-                    fontSize: 26,
-               },
-          }}>
-               {category}
-          </Text>
+          <Pressable maxWidth="80%" onPress={() => onPressCategory(category, textId, source)}>
+               <Text
+                    color={colorMode === 'light' ? theme['colors']['gray']['800'] : theme['colors']['coolGray']['200']}
+                    bold
+                    mb="$1"
+                    sx={{
+                         '@base': {
+                              fontSize: 18,
+                         },
+                         '@lg': {
+                              fontSize: 24,
+                         },
+                    }}>
+                    {category}
+               </Text>
+          </Pressable>
      );
 }
 
@@ -138,8 +199,51 @@ const DisplayBrowseCategoryRecord = ({record}) => {
           isNew = record.isNew;
      }
 
+     const onPressItem = (key, type, title) => {
+          if (type === 'List' || type === 'list') {
+               navigateStack('BrowseTab', 'SearchByList', {
+                    id: key,
+                    title: title,
+                    prevRoute: 'HomeScreen',
+               });
+          } else if (type === 'SavedSearch') {
+               navigateStack('BrowseTab', 'SearchBySavedSearch', {
+                    id: key,
+                    title: title,
+                    prevRoute: 'HomeScreen',
+               });
+          } else if (type === 'Event' || _.includes(type, '_event')) {
+               let eventSource = 'unknown';
+               if (type === 'communico_event') {
+                    eventSource = 'communico';
+               } else if (type === 'library_calendar_event') {
+                    eventSource = 'library_calendar';
+               } else if (type === 'springshare_libcal_event') {
+                    eventSource = 'springshare';
+               } else if (type === 'assabet_event') {
+                    eventSource = 'assabet';
+               } else if (type === 'aspenEvent_event') {
+                    eventSource = 'aspenEvents';
+               }
+
+               navigateStack('BrowseTab', 'EventScreen', {
+                    id: key,
+                    title: title,
+                    source: eventSource,
+                    prevRoute: 'HomeScreen',
+               });
+          } else {
+               navigateStack('BrowseTab', 'GroupedWorkScreen', {
+                    id: key,
+                    title: title,
+                    prevRoute: 'HomeScreen',
+               });
+          }
+     }
+
      return (
           <Pressable
+               onPress={() => onPressItem(id, type, record.title_display ?? record.title)}
                ml="$1"
                mr="$3"
                sx={{
@@ -177,8 +281,31 @@ const DisplayBrowseCategoryRecord = ({record}) => {
      )
 }
 
-const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect }) => {
+const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data }) => {
+     const queryClient = useQueryClient();
+
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { library } = React.useContext(LibrarySystemContext);
+
+     const [showErrorDialog, setShowErrorDialog] = React.useState(false);
+     const [errorTitle, setErrorTitle] = React.useState('');
+     const [errorMessage, setErrorMessage] = React.useState('');
+
+     const onPressHideSubCategory = async (index) => {
+          let activeSubCategory = subCategories[index];
+          await updateBrowseCategoryStatus(activeSubCategory.textId, library.baseUrl).then(async (response) => {
+               if (!response.ok) {
+                    const error = getErrorMessage({ statusCode: response.status, problem: response.problem});
+                    setErrorTitle(error.title);
+                    setErrorMessage(error.message);
+                    logErrorMessage(response);
+                    setShowErrorDialog(true);
+               } else {
+                    await queryClient.invalidateQueries({ queryKey: ['browse_categories', library.baseUrl, language, maxNum] });
+                    await queryClient.invalidateQueries({ queryKey: ['browse_categories_list', library.baseUrl, language] });
+               }
+          });
+     }
 
      return (
          <ButtonGroup vertical space="sm" pb="$2">
@@ -191,19 +318,34 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect }) => {
                           <ButtonText fontWeight="$medium" color={theme['colors']['primary']['500-text']} >
                                {subCategory.label}
                           </ButtonText>
-                          <ButtonIcon as={MaterialIcons} name="close" size="sm" color={theme['colors']['primary']['500-text']} ml="$4" />
+                          <ButtonIcon as={MaterialIcons} name="close" onPress={() => onPressHideSubCategory(index)} size="sm" color={theme['colors']['primary']['500-text']} ml="$4" />
                      </Button>
                 ))}
          </ButtonGroup>
      )
 }
 
-const DisplayMoreResultsButton = ({ onPress }) => {
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+const DisplayMoreResultsButton = ({ category }) => {
+     const { theme } = React.useContext(ThemeContext);
      const { language } = React.useContext(LanguageContext);
+
+     const onPressMoreResults = (label, key, source) => {
+          let screen = 'SearchByCategory';
+          if (source === 'List') {
+               screen = 'SearchByList';
+          } else if (source === 'SavedSearch') {
+               screen = 'SearchBySavedSearch';
+          }
+
+          navigateStack('BrowseTab', screen, {
+               title: label,
+               id: key,
+          });
+     }
 
      return (
           <Pressable
+               onPress={() => onPressMoreResults(category.label, category.textId, category.source ?? 'GroupedWork')}
                ml="$1"
                alignItems="center"
                justifyContent="center"
