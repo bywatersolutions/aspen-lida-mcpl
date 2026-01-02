@@ -85,7 +85,7 @@ const CreateListGroup = (props) => {
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} sx={{ _text: { color: textColor } }} />
-                                                  {_.map(listGroups.groups, function (item, index, array) {
+                                                  {_.map(Object.values(listGroups.groups), function (item, index, array) {
                                                        return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroupId === item.id ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: nestedGroupId === item.id ? theme['colors']['tertiary']['500-text'] : textColor } }} />;
                                                   })}
                                              </SelectContent>
@@ -107,15 +107,15 @@ const CreateListGroup = (props) => {
                                              setAdding(true);
                                              await createListGroup(title, nestedGroupId, library.baseUrl).then(async (res) => {
                                                   let status = 'success';
-                                                  if (!res.success) {
-                                                       status = 'danger';
+                                                  if (!res.data.result.success) {
+                                                       status = 'error';
                                                   }
                                                   queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                                                   queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
                                                   queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });
                                                   toggle();
                                                   setLoading(true);
-                                                  popAlert(getTermFromDictionary(language, 'list_created'), res.message, status);
+                                                  popAlert(getTermFromDictionary(language, 'list_created'), res.data.result.message, status);
                                              });
                                         }}>
                                         <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'create_list_group')}</ButtonText>

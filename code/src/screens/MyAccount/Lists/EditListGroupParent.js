@@ -11,9 +11,8 @@ import { navigateStack } from '../../../helpers/RootNavigator';
 import { Platform } from 'react-native';
 import _ from 'lodash';
 
-export const EditListGroupParent = ({id, parentId}) => {
+export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
      const queryClient = useQueryClient();
-     const navigation = useNavigation();
      const { user, listGroups } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
@@ -90,12 +89,13 @@ export const EditListGroupParent = ({id, parentId}) => {
                                                      queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
                                                      setLoading(false);
                                                      let status = 'success';
-                                                     setIsOpen(!isOpen);
-                                                     if (res.success === false) {
+                                                     setShowModal(false);
+                                                     handleUpdate(id);
+                                                     if (res.data.result.success === false) {
                                                           status = 'error';
-                                                          popAlert(res.title, res.message, status);
+                                                          popAlert(res.data.result.title, res.data.result.message, status);
                                                      } else {
-                                                          popAlert(res.title, res.message, status);
+                                                          popAlert(res.data.result.title, res.data.result.message, status);
                                                           navigateStack('AccountScreenTab', 'MyLists', {
                                                                libraryUrl: library.baseUrl,
                                                                hasPendingChanges: true,

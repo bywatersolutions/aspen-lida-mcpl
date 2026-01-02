@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/native';
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
 import { Button, ButtonGroup, ButtonIcon, ButtonText, Center, CloseIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Icon, Input, InputField, Modal, ModalBackdrop, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { editListGroup } from '../../../util/api/list';
-import _ from 'lodash';
+import { navigateStack } from '../../../helpers/RootNavigator';
 
-export const EditListGroup = ({currentTitle, id}) => {
+export const EditListGroup = ({currentTitle, id, handleUpdate}) => {
      const queryClient = useQueryClient();
-     const navigation = useNavigation();
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
@@ -59,11 +57,13 @@ export const EditListGroup = ({currentTitle, id}) => {
                                                 setLoading(true);
                                                 editListGroup(id, title, library.baseUrl).then(async (res) => {
                                                      setLoading(false);
-                                                     if (!_.isNull(title)) {
-                                                          navigation.setOptions({ title: title });
-                                                     }
                                                      setShowModal(false);
+                                                     handleUpdate(id);
                                                      queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });
+                                                     navigateStack('AccountScreenTab', 'MyLists', {
+                                                          libraryUrl: library.baseUrl,
+                                                          hasPendingChanges: true,
+                                                     });
                                                 });
                                            }}>
                                         <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>

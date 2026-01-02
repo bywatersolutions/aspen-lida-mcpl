@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/native';
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
 import { Center, Button, ButtonIcon, ButtonText, ButtonGroup, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, Heading, ModalCloseButton, Icon, CloseIcon, Text } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -9,10 +8,9 @@ import { deleteListGroup } from '../../../util/api/list';
 import { popAlert } from '../../../components/loadError';
 import { navigateStack } from '../../../helpers/RootNavigator';
 
-export const DeleteListGroup = ({id}) => {
+export const DeleteListGroup = ({id, handleUpdate, setCurrentListGroup}) => {
      const queryClient = useQueryClient();
-     const navigation = useNavigation();
-     const { user } = React.useContext(UserContext);
+     const { user, listGroups } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
@@ -52,17 +50,18 @@ export const DeleteListGroup = ({id}) => {
                                            onPress={() => {
                                                 setLoading(true);
                                                 deleteListGroup(id, library.baseUrl).then(async (res) => {
+                                                     handleUpdate(listGroups.groups[0]?.id || -1);
                                                      queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });
                                                      queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
                                                      queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                                                      setLoading(false);
                                                      let status = 'success';
-                                                     setIsOpen(!isOpen);
-                                                     if (res.success === false) {
+                                                     setShowModal(false);
+                                                     if (res.data.result.success === false) {
                                                           status = 'error';
-                                                          popAlert(res.title, res.message, status);
+                                                          popAlert(res.data.result.title, res.data.result.message, status);
                                                      } else {
-                                                          popAlert(res.title, res.message, status);
+                                                          popAlert(res.data.result.title, res.data.result.message, status);
                                                           navigateStack('AccountScreenTab', 'MyLists', {
                                                                libraryUrl: library.baseUrl,
                                                                hasPendingChanges: true,
