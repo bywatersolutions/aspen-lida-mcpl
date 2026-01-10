@@ -85,7 +85,7 @@ const CreateListGroup = (props) => {
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
-                                                  <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} sx={{ _text: { color: textColor } }} />
+                                                  <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroupId === "no" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: nestedGroupId === "no" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
                                                   {_.map(Object.values(listGroups.groups), function (item, index, array) {
                                                        return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroupId === item.id ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: nestedGroupId === item.id ? theme['colors']['tertiary']['500-text'] : textColor } }} />;
                                                   })}
