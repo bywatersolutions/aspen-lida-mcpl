@@ -283,10 +283,10 @@ export const MyLists = () => {
                          <Box px="$5" mt="$2">
                               <Select name="listGroupSelect" selectedValue={currentListGroup} defaultValue={defaultListGroup} onValueChange={(itemValue) => updateSelectedListGroup(itemValue)}>
                                    <SelectTrigger variant="outline" size="md">
-                                        {currentListGroup && currentListGroup != "-1" ? (
+                                        {currentListGroup && currentListGroup !== "-1" && currentListGroup !== -1 ? (
                                              _.map(Object.values(listGroups.groups), function (group, selectedIndex, array) {
                                                   if (group.id === currentListGroup) {
-                                                       return <SelectInput placeholder={group.title} value={group.id} color={textColor} />;
+                                                       return <SelectInput value={group.title} color={textColor} />;
                                                   }
                                              })
                                         ) : currentListGroup == "-1" ? (
