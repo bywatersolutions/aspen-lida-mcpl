@@ -109,7 +109,7 @@ export const SelectThawDate = (props) => {
                          <ModalBody>
                               <FormControl>
                                    <FormControlLabel>
-                                        <FormControlLabelText>
+                                        <FormControlLabelText color={textColor}>
                                              {getTermFromDictionary("en", "freeze_indefinite_warning")}
                                         </FormControlLabelText>
                                    </FormControlLabel>
@@ -126,7 +126,7 @@ export const SelectThawDate = (props) => {
                                         }}>
                                              {freezeIndefinite && <Icon as={MaterialIcons} name="check" color={theme['colors']['primary']['500-text']} size="sm" />}
                                         </CheckboxIndicator>
-                                        <CheckboxLabel pl="$2">
+                                        <CheckboxLabel pl="$2" color={textColor}>
                                              <Text color={textColor}>
                                              {getTermFromDictionary("en", "freeze_indefinite_checkbox")}
                                              </Text>
