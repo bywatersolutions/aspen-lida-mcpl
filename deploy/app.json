@@ -1,0 +1,15 @@
+{
+  "name": "Montgomery Co. MD Libraries",
+  "slug": "mcpl",
+  "easId": "b8ea0a2c-28a5-4f92-b695-44a34be6e550",
+  "reverseDns": "org.aspendiscovery.mcpl",
+  "discoveryUrl": "https://mcpl.aspendiscovery.org/",
+  "greenhouseUrl": "https://mcpl.aspendiscovery.org/",
+  "libraryId": "2",
+  "themeId": "1",
+  "background": "#ffffff",
+  "sentryProject": "aspen-lida-mcpl",
+  "sentryDsn": "https://2bec2a89c73e13878338bb001d8620ec@o994439.ingest.us.sentry.io/4508761914015744",
+  "ascAppId": "6741481170",
+  "logLevel": "0"
+}
